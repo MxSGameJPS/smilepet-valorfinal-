@@ -35,6 +35,7 @@ export interface MLItem {
   dimensions: string; // "10x10x10,500"
   pictures: { url: string }[];
   attributes: { id: string; value_name: string }[];
+  variations?: any[];
 }
 
 export interface MLShippingOption {
@@ -330,11 +331,29 @@ export async function updateItemPrice(
   newPrice: number,
   accessToken: string,
 ): Promise<void> {
-  const url = `${BASE_URL}/items/${itemId}`;
+  // 1. Fetch item to check for variations
+  const item = await getItemDetails(itemId, accessToken);
 
-  const body = {
-    price: newPrice,
-  };
+  const url = `${BASE_URL}/items/${itemId}`;
+  let body: any = {};
+
+  // Se tiver variações, precisamos atualizar o preço em cada variação
+  if (item.variations && item.variations.length > 0) {
+    console.log(
+      `Item ${itemId} has ${item.variations.length} variations. Updating all to ${newPrice}.`,
+    );
+    body = {
+      variations: item.variations.map((v: any) => ({
+        id: v.id,
+        price: newPrice,
+      })),
+    };
+  } else {
+    // Caso contrário, atualiza preço base
+    body = {
+      price: newPrice,
+    };
+  }
 
   const res = await fetch(url, {
     method: "PUT",
