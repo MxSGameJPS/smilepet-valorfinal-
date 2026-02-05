@@ -321,7 +321,24 @@ export default function PriceCalculator({
             <h2 className="text-6xl font-black text-green-600 mt-2">
               {formatCurrency(result.calculation.price)}
             </h2>
-            <p className="text-gray-400 mt-2 text-sm">
+
+            {result.calculation.wholesalePrice && (
+              <div className="mt-4 bg-purple-50 p-4 rounded-xl inline-block border border-purple-100 shadow-sm animate-fade-in">
+                <p className="text-purple-700 text-xs font-bold uppercase tracking-wider mb-1">
+                  Preço de Atacado (2+ un)
+                </p>
+                <div className="flex items-baseline justify-center gap-2">
+                  <p className="text-3xl font-bold text-purple-800">
+                    {formatCurrency(result.calculation.wholesalePrice)}
+                  </p>
+                  <span className="bg-purple-200 text-purple-800 text-xs font-bold px-2 py-0.5 rounded-full">
+                    -5% OFF
+                  </span>
+                </div>
+              </div>
+            )}
+
+            <p className="text-gray-400 mt-4 text-sm">
               Baseado no cenário: {result.calculation.scenario}
             </p>
           </div>

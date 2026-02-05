@@ -91,7 +91,7 @@ export async function POST(request: Request) {
     const suggestedPriceLow =
       (Number(costPrice) + 0 + extraCosts + 6.75) / divisor;
 
-    let finalOutcome = null;
+    let finalOutcome: any = null;
 
     if (suggestedPriceHigh >= 79) {
       finalOutcome = {
@@ -139,8 +139,23 @@ export async function POST(request: Request) {
       }
     }
 
+    // New: Calculate Wholesale Price (5% discount for 2+ units)
+    // Assuming this means the unit price becomes 5% less
+    const wholesalePrice = finalOutcome.price * 0.95;
+    finalOutcome.wholesalePrice = wholesalePrice;
+
     // Save to Database (Supabase)
     try {
+      // Ensure column exists (Migration step)
+      try {
+        await query(`
+          ALTER TABLE valorideal 
+          ADD COLUMN IF NOT EXISTS preco_atacado DECIMAL(10,2) DEFAULT 0;
+        `);
+      } catch (colErr) {
+        console.warn("Could not ensure preco_atacado column exists:", colErr);
+      }
+
       const shippingType = item.shipping.free_shipping
         ? "Frete Gratis"
         : "Conta Comprador";
@@ -161,8 +176,9 @@ export async function POST(request: Request) {
                 valor_lucro,
                 preco_venda_recomendado,
                 taxa_imposto,
-                outros_custos
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+                outros_custos,
+                preco_atacado
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
         `;
       const values = [
         itemId,
@@ -177,6 +193,7 @@ export async function POST(request: Request) {
         Number((finalOutcome.price || 0).toFixed(2)),
         Number(taxPercent || 0),
         Number(extraCosts || 0),
+        Number(wholesalePrice.toFixed(2)), // New Column
       ];
 
       await query(sql, values);
