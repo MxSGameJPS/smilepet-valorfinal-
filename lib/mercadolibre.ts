@@ -337,28 +337,28 @@ export async function updateItemPrice(
   const url = `${BASE_URL}/items/${itemId}`;
   let body: any = {};
 
-  // Se tiver variações, precisamos atualizar o preço em cada variação
+  // Se tiver variações, o preço DEVE ser atualizado via variações e NÃO na raiz
   if (item.variations && item.variations.length > 0) {
     console.log(
-      `Item ${itemId} has ${item.variations.length} variations. Updating all to ${newPrice}.`,
+      `Item ${itemId} has ${item.variations.length} variations. Updating variations ONLY.`,
     );
     body = {
       variations: item.variations.map((v: any) => ({
         id: v.id,
         price: newPrice,
+        currency_id: item.currency_id || "BRL", // Garantir currency
       })),
     };
   } else {
-    // Caso contrário, atualiza preço base
+    // Caso contrário, atualiza preço base na raiz
+    console.log(`Item ${itemId} has NO variations. Updating root price.`);
     body = {
       price: newPrice,
+      currency_id: item.currency_id || "BRL", // Adicionando currency_id
     };
   }
 
-  console.log(
-    `Sending update to ${url} with body:`,
-    JSON.stringify(body, null, 2),
-  );
+  console.log(`Sending update to ${url}`);
 
   const res = await fetch(url, {
     method: "PUT",
@@ -371,34 +371,53 @@ export async function updateItemPrice(
 
   if (!res.ok) {
     const errorData = await res.json();
-    console.error("Update failed with body:", JSON.stringify(body));
-    console.error("Error response:", JSON.stringify(errorData));
+    console.error("Update failed. Error Data:", JSON.stringify(errorData));
 
-    // Fallback: Se falhar com variações, tenta atualizar via raiz (as vezes a política exige isso ou vice-versa)
+    // Fallback Only if 400 or 403.
+    // Tentar o oposto: se tentamos VARIACOES e falhou, tenta RAIZ (como antes).
+    const wasVariations = !!(item.variations && item.variations.length > 0);
+
     if (
-      item.variations &&
-      item.variations.length > 0 &&
+      wasVariations &&
       (errorData.status === 400 || errorData.status === 403)
     ) {
       console.warn("Retrying with root price update as fallback...");
+      const fallbackBody = {
+        price: newPrice,
+        currency_id: item.currency_id || "BRL",
+      };
+
       const res2 = await fetch(url, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${accessToken}`,
         },
-        body: JSON.stringify({ price: newPrice }),
+        body: JSON.stringify(fallbackBody),
       });
 
       if (res2.ok) {
         console.log("Fallback update successful.");
         return;
-      } else {
-        const errorData2 = await res2.json();
-        console.error("Fallback failed too:", JSON.stringify(errorData2));
       }
+
+      // Se falhar o fallback, logar o erro do fallback
+      const err2 = await res2.json();
+      console.error("Fallback failed error:", JSON.stringify(err2));
     }
 
-    throw new Error(`Failed to update price: ${JSON.stringify(errorData)}`);
+    // Se for erro de política, lançar mensagem amigável
+    if (
+      errorData.code === "PA_UNAUTHORIZED_RESULT_FROM_POLICIES" ||
+      errorData.blocked_by === "PolicyAgent"
+    ) {
+      throw new Error(
+        "O Mercado Livre bloqueou a atualização (Política de Preços). Verifique se o item está em promoção, campanha ou se a mudança de preço viola regras da categoria.",
+      );
+    }
+
+    throw new Error(
+      `Failed to update price: ${errorData.message || errorData.code || "Unknown Error"}`,
+    );
   }
 }
