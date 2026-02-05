@@ -29,17 +29,6 @@ export default function PriceCalculator() {
   };
 
   const handleSearchItem = async (e: React.FormEvent) => {
-    // (This part is preserved, do not duplicate code but the tool replaces blocks)
-    // I am replacing lines 13-20 with expanded state
-    // And lines 66-103 (handleCalculate) to include new fields.
-    // But wait I cannot replace non-contiguous blocks with replace_file_content unless I use multi_replace.
-    // I will use multi_replace.
-  };
-
-  // Wait, I am using replace_file_content which is single block.
-  // I will use multi_replace_file_content instead.
-
-  const handleSearchItem = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoadingItem(true);
     setError("");
