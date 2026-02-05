@@ -58,6 +58,11 @@ export async function GET(request: Request) {
       category_id: item.category_id,
       shipping: item.shipping,
       shipping_prediction: shippingCostPrediction, // Pass to frontend
+      // Diagnostics fields
+      status: item.status,
+      sub_status: item.sub_status,
+      tags: item.tags,
+      catalog_listing: item.catalog_listing,
     });
   } catch (error: any) {
     console.error("Link Item Error:", error);

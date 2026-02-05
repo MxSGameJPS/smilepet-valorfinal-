@@ -523,27 +523,73 @@ export default function PriceCalculator({
             </table>
           </div>
 
-          <div className="mt-8 flex justify-center">
-            <button
-              onClick={() => setShowUpdateModal(true)}
-              className="bg-purple-600 text-white font-bold py-3 px-8 rounded-xl hover:bg-purple-700 transition-all shadow-md flex items-center gap-2"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                />
-              </svg>
-              Atualizar Preço no Mercado Livre
-            </button>
+          <div className="mt-8 flex flex-col items-center">
+            {/* Logic to check for blocks */}
+            {(() => {
+              const subStatus = item.sub_status || [];
+              const tags = item.tags || [];
+              const isCatalog = item.catalog_listing;
+
+              let blockReason = "";
+              if (
+                tags.includes("locked_by_promotion") ||
+                tags.includes("campaign_related")
+              )
+                blockReason = "Item em promoção/campanha (Travado)";
+              if (tags.includes("catalog_listing") || isCatalog)
+                blockReason = "Anúncio de Catálogo (Gerenciado pelo ML)";
+              if (
+                subStatus.includes("suspended") ||
+                subStatus.includes("banned")
+              )
+                blockReason = "Anúncio suspenso/banido";
+              if (subStatus.includes("waiting_for_patch"))
+                blockReason = "Aguardando correção (Travado)";
+              if (item.status === "paused")
+                blockReason = "Anúncio pausado (Pode atualizar, mas verifique)";
+
+              // Allow paused, but warn? No, usually allows update.
+              // Strict blocks: promotion, catalog.
+              const isBlocked =
+                tags.includes("locked_by_promotion") ||
+                tags.includes("campaign_related") ||
+                subStatus.includes("waiting_for_patch");
+
+              return (
+                <>
+                  {isBlocked && (
+                    <div className="mb-4 bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-lg text-sm max-w-md text-center">
+                      <strong>Atenção:</strong>{" "}
+                      {blockReason || "Item com restrições de edição."} <br />A
+                      atualização manual via API pode ser rejeitada.
+                    </div>
+                  )}
+                  <button
+                    onClick={() => setShowUpdateModal(true)}
+                    disabled={isBlocked}
+                    className={`bg-purple-600 text-white font-bold py-3 px-8 rounded-xl shadow-md flex items-center gap-2 ${isBlocked ? "opacity-50 cursor-not-allowed bg-gray-400" : "hover:bg-purple-700 transition-all"}`}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                      />
+                    </svg>
+                    {isBlocked
+                      ? "Atualização Bloqueada"
+                      : "Atualizar Preço no Mercado Livre"}
+                  </button>
+                </>
+              );
+            })()}
           </div>
         </div>
       )}
