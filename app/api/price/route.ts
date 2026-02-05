@@ -14,7 +14,9 @@ export async function POST(request: Request) {
 
     const cookieStore = await cookies();
     const accessToken = cookieStore.get("ml_access_token")?.value;
-    const userId = cookieStore.get("ml_user_id")?.value;
+    // Prioritize configured SELLER_ID (Store Owner) over the logged-in user's ID
+    const userId =
+      process.env.SELLER_ID || cookieStore.get("ml_user_id")?.value;
 
     if (!accessToken || !userId) {
       return NextResponse.json(
