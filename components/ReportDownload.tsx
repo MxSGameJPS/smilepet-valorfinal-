@@ -22,6 +22,18 @@ export default function ReportDownload() {
     }).format(val);
   };
 
+  const [previewData, setPreviewData] = useState<any[]>([]);
+
+  // Fetch data on mount for preview
+  useState(() => {
+    fetchData()
+      .then((data) => {
+        // Take last 5 items
+        setPreviewData(data.slice(0, 5));
+      })
+      .catch(console.error);
+  });
+
   const handleDownloadPDF = async () => {
     setLoading(true);
     try {
@@ -115,48 +127,101 @@ export default function ReportDownload() {
   };
 
   return (
-    <div className="flex flex-col sm:flex-row gap-4 justify-center mt-12 mb-8">
-      <button
-        onClick={handleDownloadPDF}
-        disabled={loading}
-        className="flex items-center justify-center gap-2 px-6 py-3 bg-red-600 text-white font-bold rounded-lg shadow-md hover:bg-red-700 transition disabled:opacity-50"
-      >
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-          />
-        </svg>
-        {loading ? "Gerando..." : "Baixar Relatório PDF"}
-      </button>
+    <div className="w-full">
+      {/* Visual Table Preview */}
+      {previewData.length > 0 && (
+        <div className="mb-6 overflow-x-auto border rounded-xl shadow-sm">
+          <table className="min-w-full divide-y divide-gray-200 bg-white text-xs sm:text-sm">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">
+                  Data
+                </th>
+                <th className="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">
+                  SKU
+                </th>
+                <th className="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">
+                  Custo
+                </th>
+                <th className="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">
+                  Lucro Est.
+                </th>
+                <th className="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wider text-green-700">
+                  Preço Rec.
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {previewData.map((row) => (
+                <tr key={row.id} className="hover:bg-gray-50 transition">
+                  <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
+                    {new Date(row.created_at).toLocaleDateString("pt-BR")}
+                  </td>
+                  <td className="px-4 py-3 text-gray-900 font-medium">
+                    {row.sku_mlb}
+                  </td>
+                  <td className="px-4 py-3 text-gray-600">
+                    {formatCurrency(row.preco_custo)}
+                  </td>
+                  <td className="px-4 py-3 text-gray-600">
+                    {formatCurrency(row.valor_lucro || 0)}
+                  </td>
+                  <td className="px-4 py-3 text-green-700 font-bold">
+                    {formatCurrency(row.preco_venda_recomendado || 0)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="bg-gray-50 px-4 py-2 text-center text-xs text-gray-400">
+            Exibindo os últimos 5 cálculos
+          </div>
+        </div>
+      )}
 
-      <button
-        onClick={handleDownloadExcel}
-        disabled={loading}
-        className="flex items-center justify-center gap-2 px-6 py-3 bg-green-700 text-white font-bold rounded-lg shadow-md hover:bg-green-800 transition disabled:opacity-50"
-      >
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
+      <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6 mb-8">
+        <button
+          onClick={handleDownloadPDF}
+          disabled={loading}
+          className="flex items-center justify-center gap-2 px-6 py-3 bg-red-600 text-white font-bold rounded-lg shadow-md hover:bg-red-700 transition disabled:opacity-50"
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-          />
-        </svg>
-        {loading ? "Gerando..." : "Baixar Relatório Excel"}
-      </button>
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+            />
+          </svg>
+          {loading ? "Gerando..." : "Baixar Relatório PDF"}
+        </button>
+
+        <button
+          onClick={handleDownloadExcel}
+          disabled={loading}
+          className="flex items-center justify-center gap-2 px-6 py-3 bg-green-700 text-white font-bold rounded-lg shadow-md hover:bg-green-800 transition disabled:opacity-50"
+        >
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            />
+          </svg>
+          {loading ? "Gerando..." : "Baixar Relatório Excel"}
+        </button>
+      </div>
     </div>
   );
 }
