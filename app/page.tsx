@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import Link from "next/link";
 import PriceCalculator from "@/components/PriceCalculator";
+import ReportDownload from "@/components/ReportDownload";
 
 export default async function Home() {
   const cookieStore = await cookies();
@@ -59,6 +60,12 @@ export default async function Home() {
               </div>
             </div>
             <PriceCalculator />
+            <div className="mt-8 pt-8 border-t border-gray-100">
+              <h3 className="text-xl font-bold text-gray-800 mb-4 text-center">
+                Relatórios
+              </h3>
+              <ReportDownload />
+            </div>
           </div>
         )}
 
