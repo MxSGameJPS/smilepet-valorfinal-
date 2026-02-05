@@ -1,7 +1,6 @@
 import { cookies } from "next/headers";
 import Link from "next/link";
-import PriceCalculator from "@/components/PriceCalculator";
-import ReportDownload from "@/components/ReportDownload";
+import Dashboard from "@/components/Dashboard";
 
 export default async function Home() {
   const cookieStore = await cookies();
@@ -49,24 +48,7 @@ export default async function Home() {
             </Link>
           </div>
         ) : (
-          <div className="bg-white p-8 rounded-2xl shadow-xl">
-            <div className="flex justify-between items-center mb-6 border-b pb-4">
-              <h2 className="text-2xl font-bold text-gray-800">
-                Calculadora de Preço
-              </h2>
-              <div className="text-sm text-green-600 font-medium flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-green-500"></span>{" "}
-                Conectado
-              </div>
-            </div>
-            <PriceCalculator />
-            <div className="mt-8 pt-8 border-t border-gray-100">
-              <h3 className="text-xl font-bold text-gray-800 mb-4 text-center">
-                Relatórios
-              </h3>
-              <ReportDownload />
-            </div>
-          </div>
+          <Dashboard />
         )}
 
         <footer className="text-center text-gray-400 text-sm mt-12">

@@ -1,12 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 
-export default function ReportDownload() {
+export default function ReportDownload({
+  refreshTrigger = 0,
+}: {
+  refreshTrigger?: number;
+}) {
   const [loading, setLoading] = useState(false);
+  const [previewData, setPreviewData] = useState<any[]>([]);
 
   const fetchData = async () => {
     const res = await fetch("/api/history");
@@ -22,17 +27,15 @@ export default function ReportDownload() {
     }).format(val);
   };
 
-  const [previewData, setPreviewData] = useState<any[]>([]);
-
-  // Fetch data on mount for preview
-  useState(() => {
+  // Fetch data on mount and when refreshTrigger changes
+  useEffect(() => {
     fetchData()
       .then((data) => {
         // Take last 5 items
         setPreviewData(data.slice(0, 5));
       })
       .catch(console.error);
-  });
+  }, [refreshTrigger]);
 
   const handleDownloadPDF = async () => {
     setLoading(true);

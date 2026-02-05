@@ -3,7 +3,12 @@
 import { useState } from "react";
 import Image from "next/image";
 
-export default function PriceCalculator() {
+// Add prop type
+export default function PriceCalculator({
+  onCalculationComplete,
+}: {
+  onCalculationComplete?: () => void;
+}) {
   // Step 1: SKU Search
   const [sku, setSku] = useState("");
   const [item, setItem] = useState<any>(null);
@@ -75,17 +80,11 @@ export default function PriceCalculator() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          sku, // Still need SKU for backend double-check or logging? Yes.
+          sku,
           costPrice: Number(costPrice.replace(",", ".")),
           marginPercent: Number(margin.replace(",", ".")),
           taxPercent: tax ? Number(tax.replace(",", ".")) : 0,
           otherCosts: otherCosts ? Number(otherCosts.replace(",", ".")) : 0,
-          // Optional: Pass overrides if we want backend to rely on frontend (risky but requested flow)
-          // For now, let's keep backend logic but maybe hinting.
-          // Actually, if we want "What if" analysis, we should pass parameters.
-          // Let's stick to the prompt: backend fetches.
-          // BUT, if user saw shipping and wants to edit?
-          // Let's pass 'manualShipping' to endpoint effectively.
           manualShipping: manualShippingCost
             ? Number(manualShippingCost.replace(",", "."))
             : undefined,
@@ -99,6 +98,7 @@ export default function PriceCalculator() {
       }
 
       setResult(data);
+      if (onCalculationComplete) onCalculationComplete();
     } catch (err: any) {
       setError(err.message);
     } finally {
