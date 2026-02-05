@@ -1,65 +1,72 @@
-import Image from "next/image";
+import { cookies } from "next/headers";
+import Link from "next/link";
+import PriceCalculator from "@/components/PriceCalculator";
 
-export default function Home() {
+export default async function Home() {
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get("ml_access_token");
+
+  const isLoggedIn = !!accessToken;
+
+  const clientId = process.env.ML_CLIENT_ID;
+  const redirectUri = process.env.ML_REDIRECT_URI;
+  const loginUrl = `https://auth.mercadolivre.com.br/authorization?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}`;
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <main className="min-h-screen bg-gray-50 flex flex-col items-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl w-full space-y-8">
+        <div className="text-center">
+          <h1 className="text-4xl font-extrabold text-blue-900 tracking-tight">
+            SmilePet <span className="text-yellow-500">ValorFinal</span>
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="mt-2 text-lg text-gray-600">
+            Sistema de Precificação Inteligente para Mercado Livre
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+
+        {!isLoggedIn ? (
+          <div className="bg-white p-8 rounded-2xl shadow-xl flex flex-col items-center justify-center space-y-6">
+            <div className="text-center space-y-2">
+              <p className="text-gray-500">
+                Para acessar a calculadora, faça login com sua conta do Mercado
+                Livre.
+              </p>
+            </div>
+            <Link
+              href={loginUrl}
+              className="flex items-center gap-3 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full transition-all transform hover:scale-105 shadow-lg"
+            >
+              <svg
+                className="w-6 h-6"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path d="M3.7,21.9h16.6c1,0,1.7-0.8,1.7-1.7V3.8c0-1-0.8-1.7-1.7-1.7H3.7c-1,0-1.7,0.8-1.7,1.7v16.3C2,21.1,2.8,21.9,3.7,21.9z M13.8,19.3c0,0.7-0.6,1.2-1.2,1.2h-1.2c-0.7,0-1.2-0.6-1.2-1.2v-1.2c0-0.7,0.6-1.2,1.2-1.2h1.2c0.7,0,1.2,0.6,1.2,1.2V19.3z M10.2,7C10.2,5.5,11.5,5,12,5c2.9,0,4.2,2.2,4.2,4c0,3.3-2.9,3.9-2.9,6.1h-2.5c0-3.3,3-3.8,3-6c0-0.8-0.6-1.7-1.8-1.7c-1.3,0-1.7,1.1-1.7,2L10.2,7z" />
+              </svg>
+              <span>Entrar com Mercado Livre</span>
+            </Link>
+          </div>
+        ) : (
+          <div className="bg-white p-8 rounded-2xl shadow-xl">
+            <div className="flex justify-between items-center mb-6 border-b pb-4">
+              <h2 className="text-2xl font-bold text-gray-800">
+                Calculadora de Preço
+              </h2>
+              <div className="text-sm text-green-600 font-medium flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-green-500"></span>{" "}
+                Conectado
+              </div>
+            </div>
+            <PriceCalculator />
+          </div>
+        )}
+
+        <footer className="text-center text-gray-400 text-sm mt-12">
+          &copy; {new Date().getFullYear()} SmilePet. Todos os direitos
+          reservados.
+        </footer>
+      </div>
+    </main>
   );
 }
