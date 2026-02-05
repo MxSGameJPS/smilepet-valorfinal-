@@ -6,6 +6,7 @@ import {
   getSellerShippingCost,
 } from "@/lib/mercadolibre";
 import { cookies } from "next/headers";
+import { query } from "@/lib/db";
 
 export async function POST(request: Request) {
   try {
@@ -144,6 +145,42 @@ export async function POST(request: Request) {
           },
         };
       }
+    }
+
+    // Save to Database (Supabase)
+    try {
+      const shippingType = item.shipping.free_shipping
+        ? "Frete Gratis"
+        : "Conta Comprador";
+      const sql = `
+            INSERT INTO valorideal (
+                sku_mlb, 
+                valor_atual, 
+                tipo_anuncio, 
+                tipo_envio, 
+                preco_custo, 
+                margem_lucro, 
+                comissao_ml, 
+                valor_frete
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        `;
+      const values = [
+        itemId,
+        currentPrice,
+        listing_type_id,
+        shippingType,
+        costPrice,
+        marginPercent,
+        finalOutcome.breakdown.mlFee,
+        finalOutcome.breakdown.shipping,
+      ];
+
+      // Execute async but don't block response too much, or await to ensure data integrity
+      await query(sql, values);
+      console.log("Saved calculation to DB");
+    } catch (dbError) {
+      console.error("Database Save Error:", dbError);
+      // Do not fail the request if DB fails, just log
     }
 
     return NextResponse.json({
