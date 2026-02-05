@@ -549,21 +549,34 @@ export default function PriceCalculator({
                 blockReason = "Anúncio pausado (Pode atualizar, mas verifique)";
 
               // Allow paused, but warn? No, usually allows update.
-              // Strict blocks: promotion, catalog.
+
+              // Strict blocks: promotion.
+              // Catalog items: Warn but allow try (because of fallback).
               const isBlocked =
                 tags.includes("locked_by_promotion") ||
                 tags.includes("campaign_related") ||
                 subStatus.includes("waiting_for_patch");
 
+              const isCatalogWarning =
+                tags.includes("catalog_listing") || isCatalog;
+
               return (
                 <>
                   {isBlocked && (
-                    <div className="mb-4 bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-lg text-sm max-w-md text-center">
-                      <strong>Atenção:</strong>{" "}
-                      {blockReason || "Item com restrições de edição."} <br />A
-                      atualização manual via API pode ser rejeitada.
+                    <div className="mb-4 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg text-sm max-w-md text-center">
+                      <strong>Bloqueado:</strong> {blockReason} <br />O Mercado
+                      Livre não permite edição manual neste estado.
                     </div>
                   )}
+
+                  {!isBlocked && isCatalogWarning && (
+                    <div className="mb-4 bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-lg text-sm max-w-md text-center">
+                      <strong>Item de Catálogo:</strong> <br />A atualização
+                      pode falhar se houver "Automatização de Preços" ativa ou
+                      travas de concorrência.
+                    </div>
+                  )}
+
                   <button
                     onClick={() => setShowUpdateModal(true)}
                     disabled={isBlocked}

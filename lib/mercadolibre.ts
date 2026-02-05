@@ -415,9 +415,10 @@ export async function updateItemPrice(
 
       const err2 = await res2.json();
       console.error("Fallback (Root) failed error:", JSON.stringify(err2));
+    }
 
-      // Fallback Level 2: Try the /prices API (New Pricing API)
-      // Docs: https://developers.mercadolivre.com.br/pt_br/api-de-precos
+    // Fallback Level 2: Try the /prices API (For ALL items if Policy Error or 400)
+    if (isPolicyError || errorData.status === 400) {
       console.warn("Retrying with /prices API (Level 2 Fallback)...");
       const pricesUrl = `${BASE_URL}/items/${itemId}/prices`;
       const pricesBody = {
@@ -426,6 +427,9 @@ export async function updateItemPrice(
             type: "standard",
             amount: newPrice,
             currency_id: item.currency_id || "BRL",
+            conditions: {
+              context_restrictions: ["channel_marketplace"],
+            },
           },
         ],
       };
