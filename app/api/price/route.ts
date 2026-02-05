@@ -45,7 +45,11 @@ export async function POST(request: Request) {
     if (manualShipping !== undefined && manualShipping !== null) {
       shippingCost = Number(manualShipping);
     } else {
-      shippingCost = await getSellerShippingCost(itemId, accessToken);
+      shippingCost = await getSellerShippingCost(
+        itemId,
+        accessToken,
+        Number(userId),
+      );
     }
 
     // 4. Determine Fee Percentage (Rate)
