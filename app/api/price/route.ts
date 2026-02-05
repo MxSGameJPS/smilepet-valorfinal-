@@ -152,6 +152,12 @@ export async function POST(request: Request) {
       const shippingType = item.shipping.free_shipping
         ? "Frete Gratis"
         : "Conta Comprador";
+      // Calculate Total ML Commission (Percentage Fee + Fixed Fee)
+      // Saved as numeric, but user wants it to look like "XX.XX" (2 decimals)
+      const totalMLFee =
+        (finalOutcome.breakdown.mlFee || 0) +
+        (finalOutcome.breakdown.fixedFee || 0);
+
       const sql = `
             INSERT INTO valorideal (
                 sku_mlb, 
@@ -173,10 +179,10 @@ export async function POST(request: Request) {
         shippingType,
         costPrice,
         marginPercent,
-        finalOutcome.breakdown.mlFee,
-        finalOutcome.breakdown.shipping,
-        finalOutcome.breakdown.profit,
-        finalOutcome.price,
+        Number(totalMLFee.toFixed(2)), // Save sum of fees, rounded to 2 decimals
+        Number((finalOutcome.breakdown.shipping || 0).toFixed(2)),
+        Number((finalOutcome.breakdown.profit || 0).toFixed(2)),
+        Number((finalOutcome.price || 0).toFixed(2)),
       ];
 
       // Execute async but don't block response too much, or await to ensure data integrity
