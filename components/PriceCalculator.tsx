@@ -26,6 +26,9 @@ export default function PriceCalculator({
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState("");
 
+  // Modal State
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+
   const formatCurrency = (val: number) => {
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
@@ -384,6 +387,49 @@ export default function PriceCalculator({
                     </td>
                   </tr>
                 )}
+                {result.calculation.breakdown.tax > 0 && (
+                  <tr>
+                    <td className="px-6 py-4 font-medium text-gray-900">
+                      Imposto (
+                      {(
+                        (result.calculation.breakdown.tax /
+                          result.calculation.price) *
+                        100
+                      ).toFixed(1)}
+                      %)
+                    </td>
+                    <td className="px-6 py-4 text-right text-red-600">
+                      - {formatCurrency(result.calculation.breakdown.tax)}
+                    </td>
+                    <td className="px-6 py-4 text-right text-gray-500">
+                      {(
+                        (result.calculation.breakdown.tax /
+                          result.calculation.price) *
+                        100
+                      ).toFixed(1)}
+                      %
+                    </td>
+                  </tr>
+                )}
+                {result.calculation.breakdown.otherCosts > 0 && (
+                  <tr>
+                    <td className="px-6 py-4 font-medium text-gray-900">
+                      Outros Custos
+                    </td>
+                    <td className="px-6 py-4 text-right text-red-600">
+                      -{" "}
+                      {formatCurrency(result.calculation.breakdown.otherCosts)}
+                    </td>
+                    <td className="px-6 py-4 text-right text-gray-500">
+                      {(
+                        (result.calculation.breakdown.otherCosts /
+                          result.calculation.price) *
+                        100
+                      ).toFixed(1)}
+                      %
+                    </td>
+                  </tr>
+                )}
                 <tr>
                   <td className="px-6 py-4 font-medium text-gray-900">
                     Frete (Pago pelo Vendedor)
@@ -418,6 +464,68 @@ export default function PriceCalculator({
                 </tr>
               </tbody>
             </table>
+          </div>
+
+          <div className="mt-8 flex justify-center">
+            <button
+              onClick={() => setShowUpdateModal(true)}
+              className="bg-purple-600 text-white font-bold py-3 px-8 rounded-xl hover:bg-purple-700 transition-all shadow-md flex items-center gap-2"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
+              </svg>
+              Atualizar Preço no Mercado Livre
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Overlay */}
+      {showUpdateModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 animate-scale-in">
+            <div className="text-center">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 mb-4">
+                <svg
+                  className="h-6 w-6 text-blue-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">
+                Funcionalidade em Desenvolvimento
+              </h3>
+              <p className="text-gray-500 mb-6">
+                A atualização automática de preços no Mercado Livre será
+                implementada após a aprovação final. Por enquanto, este botão é
+                apenas demonstrativo e nenhuma alteração real será feita.
+              </p>
+              <button
+                onClick={() => setShowUpdateModal(false)}
+                className="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-blue-700 transition-all"
+              >
+                Entendido
+              </button>
+            </div>
           </div>
         </div>
       )}
