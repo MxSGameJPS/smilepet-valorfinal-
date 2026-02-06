@@ -140,23 +140,12 @@ export async function POST(request: Request) {
         },
       };
 
-      if (priceLow >= 79) {
-        // Recalculates based on High scenario
-        const priceHigh = roundTo99(suggestedPriceHigh);
-        finalOutcome = {
-          price: priceHigh,
-          scenario: "> 79 (Forced by Margin)",
-          breakdown: {
-            baseCost: Number(costPrice),
-            mlFee: suggestedPriceHigh * feeRate,
-            shipping: shippingCost,
-            fixedFee: 0,
-            tax: suggestedPriceHigh * taxRate,
-            otherCosts: extraCosts,
-            profit: suggestedPriceHigh * marginRate,
-          },
-        };
-      }
+      // Note: If priceLow >= 79, we keep it as is.
+      // This means the calculation with Fixed Fee pushed the price above 79.
+      // E.g. Price is 85.00. Breakdown shows 6.75 fee.
+      // In reality, ML will remove the fee at 85.00, increasing seller profit.
+      // This is safer than reverting to High Scenario (e.g. 69.99) which would HIDE the fee
+      // but imply it applies, causing a loss.
     }
 
     // New: Calculate Wholesale Price (5% discount for 2+ units)
